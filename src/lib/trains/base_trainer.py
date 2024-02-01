@@ -109,9 +109,12 @@ class BaseTrainer(object):
             Bar.suffix = '{phase}: [{0}][{1}/{2}]|Tot: {total:} |ETA: {eta:} '.format(
                 epoch, batch_i, num_iters, phase=phase,
                 total=bar.elapsed_td, eta=bar.eta_td)
+            # print(avg_loss_stats)
+            # print(loss_stats)
             for l in avg_loss_stats:
-                avg_loss_stats[l].update(loss_stats[l].mean().item(), batch['input'].size(0))
-                Bar.suffix = Bar.suffix + '|{} {:.4f} '.format(l, avg_loss_stats[l].avg)
+                if loss_stats[l] != 0:
+                    avg_loss_stats[l].update(loss_stats[l].mean().item(), batch['input'].size(0))
+                    Bar.suffix = Bar.suffix + '|{} {:.4f} '.format(l, avg_loss_stats[l].avg)
 
             # multi-scale img_size display
             scale_idx = data_loader.dataset.batch_i_to_scale_i[batch_i]

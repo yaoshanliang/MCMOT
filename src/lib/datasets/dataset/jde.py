@@ -521,6 +521,7 @@ class MultiScaleJD(LoadImagesAndLabels):
                 for lp in label_paths:
                     if not os.path.isfile(lp):
                         print('[Warning]: invalid label file {}.'.format(lp))
+                        exit
                         continue
 
                     with warnings.catch_warnings():

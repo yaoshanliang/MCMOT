@@ -1,15 +1,15 @@
 {
-    "root":"/mnt/diskb/even/dataset",
+    "root":"/gpfs/work/cpt/shanliangyao19/dataset/USVTrack/MCMOT",
     "train":
     {
-        "mcmot":"./data/mcmot.train"
+        "mcmot":"/gpfs/work/cpt/shanliangyao19/dataset/USVTrack/MCMOT/train.txt"
     },
     "test_emb":
     {
-        "mcmot":"./data/mcmot.train"
+        "mcmot":"/gpfs/work/cpt/shanliangyao19/dataset/USVTrack/MCMOT/test.txt"
     },
     "test":
     {
-        "mcmot":"./data/mcmot.train"
+        "mcmot":"/gpfs/work/cpt/shanliangyao19/dataset/USVTrack/MCMOT/test.txt"
     }
 }

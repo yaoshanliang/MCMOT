@@ -27,29 +27,15 @@ from tqdm import tqdm
 
 # We need 10 classes to detect and tracking
 cls2id = {
-    'pedestrian': 0,
-    'people': 1,
-    'bicycle': 2,
-    'car': 3,
-    'van': 4,
-    'truck': 5,
-    'tricycle': 6,
-    'awning-tricycle': 7,
-    'bus': 8,
-    'motor': 9
+    'ship': 0,
+    'boat': 1,
+    'vessel': 2,
 }
 
 id2cls = {
-    0: 'pedestrian',
-    1: 'people',
-    2: 'bicycle',
-    3: 'car',
-    4: 'van',
-    5: 'truck',
-    6: 'tricycle',
-    7: 'awning-tricycle',
-    8: 'bus',
-    9: 'motor'
+    0: 'ship',
+    1: 'boat',
+    2: 'vessel',
 }
 
 
@@ -137,16 +123,17 @@ def gen_track_dataset(src_root, dst_root, viz_root=None):
     # 记录总的帧数
     frame_cnt = 0
 
-    seq_names = [x for x in os.listdir(src_root + '/sequences')]
+    seq_names = [x for x in os.listdir(src_root + '/images/test')]
     seq_names.sort()
 
     # 遍历每一个视频序列
     for seq in tqdm(seq_names):
         print('Processing {}:'.format(seq))
 
-        seq_img_dir = src_root + '/sequences/' + seq
-        seq_txt_f_path = src_root + '/annotations/' + seq + '.txt'
+        seq_img_dir = src_root + '/images/test/' + seq + '/img1'
+        seq_txt_f_path = src_root + '/annotations/' + seq + '/gt/gt.txt'
 
+        print(seq_img_dir, seq_txt_f_path)
         if not (os.path.isdir(seq_img_dir) and os.path.isfile(seq_txt_f_path)):
             print('[Warning]: invalid src img dir or invalid annotations file(txt).')
             continue
@@ -173,11 +160,12 @@ def gen_track_dataset(src_root, dst_root, viz_root=None):
         with open(seq_txt_f_path, 'r', encoding='utf-8') as f_r:
             label_lines = f_r.readlines()
             label_n_lines = len(label_lines)
-            seq_label_array = np.zeros((label_n_lines, 10), np.int32)
+            seq_label_array = np.zeros((label_n_lines, 9), np.int32)
 
             # 解析该视频序列的每一帧
             for line_i, line in enumerate(label_lines):
-                line = [int(x) for x in line.strip().split(',')]
+                print(line)
+                line = [int(float(x)) for x in line.strip().split(',')]
                 seq_label_array[line_i] = line
 
         # 记录该视频序列每一帧的ignore_regions和检测/跟踪目标
@@ -223,28 +211,38 @@ def gen_track_dataset(src_root, dst_root, viz_root=None):
             fr_labels = seq_objs_label_dict[fr_id]
 
             # ----- 读取图片宽高
-            fr_name = '{:07d}.jpg'.format(fr_id)
-            fr_path = seq_img_dir + '/' + fr_name
-            if not os.path.isfile(fr_path):
-                print('[Err]: invalid image file {}.'.format(fr_path))
-                continue
+            print('fr_id', fr_id, 'total', len(seq_frame_names))
+            fr_path = seq_img_dir + '/' + seq_frame_names[fr_id - 1] # 图片-1个序号
+            fr_name = fr_path[-20:]
+            print('fr_path', fr_path)
+            print('fr_name', fr_name)
 
-            # H×W×C: BGR
-            img = cv2.imread(fr_path, cv2.IMREAD_COLOR)
-            if img is None:
-                print('[Err]: empty image.')
-                continue
 
-            H, W, C = img.shape
+            # fr_name = '{:07d}.jpg'.format(fr_id)
+            # fr_path = seq_img_dir + '/' + fr_name
+            # if not os.path.isfile(fr_path):
+            #     print('[Err]: invalid image file {}.'.format(fr_path))
+            #     continue
+
+            # # H×W×C: BGR
+            # img = cv2.imread(fr_path, cv2.IMREAD_COLOR)
+            # if img is None:
+            #     print('[Err]: empty image.')
+            #     continue
+
+            # H, W, C = img.shape
+            H = 1080
+            W = 1920
 
             # ----- 绘制ignore regions
-            draw_ignore_regions(img, seq_ignore_box_dict[fr_id])
+            # draw_ignore_regions(img, seq_ignore_box_dict[fr_id])
 
-            # ----- 拷贝image到目标目录
-            dst_img_path = dst_seq_img_dir + '/' + fr_name
-            if not os.path.isfile(dst_img_path):
-                cv2.imwrite(dst_img_path, img)  # 将绘制过ignore region的图片存入目标子目录
-                # print('{} saved to {}'.format(fr_path, dst_seq_img_dir))
+            # # ----- 拷贝image到目标目录
+            # dst_img_path = dst_seq_img_dir + '/' + fr_name
+            # print('dst_img_path', dst_img_path)
+            # if not os.path.isfile(dst_img_path):
+            #     cv2.imwrite(dst_img_path, img)  # 将绘制过ignore region的图片存入目标子目录
+            #     print('{} saved to {}'.format(fr_path, dst_seq_img_dir))
 
             # ----- 如果可视化目录不为空, 进行可视化计算
             if not (viz_root is None):
@@ -281,10 +279,10 @@ def gen_track_dataset(src_root, dst_root, viz_root=None):
                 score = label[6]
                 truncation = label[
                     8]  # no truncation = 0 (truncation ratio 0%), and partial truncation = 1 (truncation ratio 1% °´ 50%))
-                occlusion = label[9]
-                if occlusion > 1:  # heavy occlusion = 2 (occlusion ratio 50% ~ 100%)).
-                    # print('[Warning]: skip the bbox because of heavy occlusion')
-                    continue
+                # occlusion = label[9]
+                # if occlusion > 1:  # heavy occlusion = 2 (occlusion ratio 50% ~ 100%)).
+                #     # print('[Warning]: skip the bbox because of heavy occlusion')
+                #     continue
 
                 # ----- 绘制该label(一个label是一张图的一个检测/跟踪目标): 在归一化之前
                 if not (viz_root is None):  # 如果可视化目录不为空
@@ -354,7 +352,10 @@ def gen_track_dataset(src_root, dst_root, viz_root=None):
 
             # ----- 这一帧的targets解析结束才输出一次
             # 输出该图片的所有label(一个label对应一个bbox)
-            label_f_path = dst_seq_txt_dir + '/' + fr_name.replace('.jpg', '.txt')
+            if not os.path.isdir(dst_seq_txt_dir + '/img1/'):
+                os.makedirs(dst_seq_txt_dir + '/img1/')
+
+            label_f_path = dst_seq_txt_dir + '/img1/' + fr_name.replace('.jpg', '.txt')
             with open(label_f_path, 'w', encoding='utf-8') as f:
                 for label_str in fr_label_strs:
                     f.write(label_str)
@@ -371,6 +372,5 @@ def gen_track_dataset(src_root, dst_root, viz_root=None):
 
 
 if __name__ == '__main__':
-    gen_track_dataset(src_root='/mnt/diskb/even/VisDrone2019-MOT-train',
-                      dst_root='/mnt/diskb/even/dataset/VisDrone2019',
-                      viz_root='/mnt/diskb/even/viz_result')
+    gen_track_dataset(src_root='/gpfs/work/cpt/shanliangyao19/dataset/USVTrack/MCMOT',
+                      dst_root='/gpfs/work/cpt/shanliangyao19/dataset/USVTrack/MCMOT/out')

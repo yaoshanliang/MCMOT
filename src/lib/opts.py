@@ -4,19 +4,22 @@ from __future__ import print_function
 
 import argparse
 import os
+import datetime
 
 
 class opts(object):
     def __init__(self):
         self.parser = argparse.ArgumentParser()
 
+        time_str        = datetime.datetime.strftime(datetime.datetime.now(),'%Y_%m_%d_%H_%M_%S')
+        exp_id = 'USVTrack_' + str(time_str)
         # basic experiment setting
         self.parser.add_argument('--task', default='mot', help='mot')
         self.parser.add_argument('--dataset', default='jde', help='jde')
-        self.parser.add_argument('--exp_id', default='default')
+        self.parser.add_argument('--exp_id', default=exp_id)
         self.parser.add_argument('--test', action='store_true')
         self.parser.add_argument('--load_model',
-                                 default='../exp/mot/default/mcmot_last_track_resdcn_18_visdrone.pth',
+                                 default='',
                                  help='path to pretrained model')
         self.parser.add_argument('--resume',
                                  action='store_true',
@@ -27,11 +30,11 @@ class opts(object):
 
         # system
         self.parser.add_argument('--gpus',
-                                 default='6',  # 0, 5, 6
+                                 default='0',  # 0, 5, 6
                                  help='-1 for CPU, use comma for multiple gpus')
         self.parser.add_argument('--num_workers',
                                  type=int,
-                                 default=4,  # 8, 6, 4
+                                 default=12,  # 8, 6, 4
                                  help='dataloader threads. 0 for single-thread.')
         self.parser.add_argument('--not_cuda_benchmark', action='store_true',
                                  help='disable when the input size is not fixed.')
@@ -106,7 +109,7 @@ class opts(object):
                                  help='total training epochs.')
         self.parser.add_argument('--batch-size',
                                  type=int,
-                                 default=10,  # 18, 16, 14, 12, 10, 8, 4
+                                 default=16,  # 18, 16, 14, 12, 10, 8, 4
                                  help='batch size')
         self.parser.add_argument('--master_batch_size', type=int, default=-1,
                                  help='batch size on the master gpu.')
@@ -122,7 +125,7 @@ class opts(object):
         # test
         self.parser.add_argument('--K',
                                  type=int,
-                                 default=200,  # 128
+                                 default=10,  # 128
                                  help='max number of output objects.')  # 一张图输出检测目标最大数量
         self.parser.add_argument('--not_prefetch_test',
                                  action='store_true',
@@ -206,11 +209,11 @@ class opts(object):
         #                          default='../src/lib/cfg/visdrone.json',  # 'mcmot_det.json', 'visdrone.json'
         #                          help='load data from cfg')
         self.parser.add_argument('--data_cfg', type=str,
-                                 default='../src/lib/cfg/mcmot.json',  # mcmot.json, mcmot_det.json,
+                                 default='src/lib/cfg/mcmot.json',  # mcmot.json, mcmot_det.json,
                                  help='load data from cfg')
         self.parser.add_argument('--data_dir',
                                  type=str,
-                                 default='/mnt/diskb/even/dataset')
+                                 default='/gpfs/work/cpt/shanliangyao19/dataset/USVTrack/MCMOT')
 
         # loss
         self.parser.add_argument('--mse_loss',  # default: false
@@ -267,7 +270,7 @@ class opts(object):
 
         # others          (11)
         self.parser.add_argument('--reid_cls_ids',
-                                 default='0,1,2,3,4,5,6,7,8,9',  # '0,1,2,3,4' or '0,1,2,3,4,5,6,7,8,9'
+                                 default='0,1,2', 
                                  help='')  # the object classes need to do reid
 
         self.parser.add_argument('--norm_wh', action='store_true',
@@ -340,6 +343,7 @@ class opts(object):
         opt.mean, opt.std = dataset.mean, dataset.std  # 均值 方差
         opt.num_classes = dataset.num_classes  # 类别数
 
+        # print(opt.reid_cls_ids.split(','))
         for reid_id in opt.reid_cls_ids.split(','):
             if int(reid_id) > opt.num_classes - 1:
                 print('[Err]: configuration conflict of reid_cls_ids and num_classes!')
