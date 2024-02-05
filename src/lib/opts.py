@@ -19,7 +19,7 @@ class opts(object):
         self.parser.add_argument('--exp_id', default=exp_id)
         self.parser.add_argument('--test', action='store_true')
         self.parser.add_argument('--load_model',
-                                 default='',
+                                 default='exp/mot/USVTrack_2024_02_03_21_52_34/model_240.pth',
                                  help='path to pretrained model')
         self.parser.add_argument('--resume',
                                  action='store_true',
@@ -34,7 +34,7 @@ class opts(object):
                                  help='-1 for CPU, use comma for multiple gpus')
         self.parser.add_argument('--num_workers',
                                  type=int,
-                                 default=12,  # 8, 6, 4
+                                 default=4,  # 8, 6, 4
                                  help='dataloader threads. 0 for single-thread.')
         self.parser.add_argument('--not_cuda_benchmark', action='store_true',
                                  help='disable when the input size is not fixed.')
@@ -105,7 +105,7 @@ class opts(object):
                                  help='drop learning rate by 10.')
         self.parser.add_argument('--num_epochs',
                                  type=int,
-                                 default=30,  # 30, 10, 3, 1
+                                 default=500,  # 30, 10, 3, 1
                                  help='total training epochs.')
         self.parser.add_argument('--batch-size',
                                  type=int,
@@ -155,6 +155,10 @@ class opts(object):
             '--val_mot20', default=False, help='val mot20')
         self.parser.add_argument(
             '--test_mot20', default=False, help='test mot20')
+        self.parser.add_argument(
+            '--val_USVTrack', default=False, help='val USVTrack')
+        self.parser.add_argument(
+            '--test_USVTrack', default=True, help='test USVTrack')
         self.parser.add_argument(
             '--conf_thres',
             type=float,

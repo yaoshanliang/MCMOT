@@ -316,9 +316,10 @@ def main(opt,
          data_root='/data/MOT16/train',
          det_root=None, seqs=('MOT16-05',),
          exp_name='demo',
+         show_image=False,
          save_images=False,
-         save_videos=False,
-         show_image=True):
+         save_videos=False
+         ):
     """
     """
 
@@ -467,10 +468,20 @@ if __name__ == '__main__':
         data_root = os.path.join(opt.data_dir, 'MOT20/images/test')
     seqs = [seq.strip() for seq in seqs_str.split()]
 
+
+    if opt.val_USVTrack:
+        data_root = os.path.join(opt.data_dir, 'images/val')
+        seqs = os.listdir(data_root)
+
+    if opt.test_USVTrack:
+        data_root = os.path.join(opt.data_dir, 'images/test')
+        seqs = os.listdir(data_root)
+        print(seqs)
+
     main(opt,
          data_root=data_root,
          seqs=seqs,
-         exp_name='MOT15_val_all_dla34',
+         exp_name=opt.exp_id,
          show_image=False,
-         save_images=False,
+         save_images=True,
          save_videos=False)

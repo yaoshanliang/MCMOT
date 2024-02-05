@@ -36,7 +36,7 @@ class MCTrack(MCBaseTrack):
         self.cls_id = cls_id
 
         # wait activate
-        self._tlwh = np.asarray(tlwh, dtype=np.float)
+        self._tlwh = np.asarray(tlwh, dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
         self.is_activated = False
@@ -216,7 +216,7 @@ class Track(BaseTrack):
         """
 
         # wait activate
-        self._tlwh = np.asarray(tlwh, dtype=np.float)
+        self._tlwh = np.asarray(tlwh, dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
         self.is_activated = False
@@ -435,6 +435,7 @@ def map2orig(dets, h_out, w_out, h_orig, w_orig, num_classes):
 class MCJDETracker(object):
     def __init__(self, opt, frame_rate=30):
         self.opt = opt
+        opt.device = torch.device('cuda:0')
 
         # ----- init model
         print('Creating model...')
